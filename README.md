@@ -17,9 +17,9 @@
 - export summary contains the actual commands used to generate the update 
 - has a transaction log
 
-## configure ldap
+## configure variables
 ```bash
-make ldap endpoint
+make set_vars
 ```
 
 ## build

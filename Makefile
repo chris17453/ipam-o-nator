@@ -51,3 +51,7 @@ deploy-update-openshift:
 
 debug:
 	@python ./src/wsgi.py
+
+set_vars:
+	@src/setup_env.sh
+

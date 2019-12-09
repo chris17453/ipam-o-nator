@@ -1,3 +1,4 @@
+import os
 import requests, json
 from flask import Flask, request, send_from_directory
 app = Flask(__name__, static_url_path='')
@@ -5,26 +6,14 @@ app = Flask(__name__, static_url_path='')
 # https://github.com/bluecatlabs/making-apis-work-for-you/
 
 
+# Account id stuff...
+bam_account =os.environ['BAM_ACCOUNT']
+bam_password = os.environ['BAM_PASSWORD']
+bam_url = os.environ['BAM_URL']
 
-account = "api"
-account_password = "pass"
-bamurl = "bam.lab.corp"
-
-mainurl = "http://"+bamurl+"/Services/REST/v1/"
-
-# Server information
-ipaddress='192.168.0.16'
-hostname='FINRPT02'
-alias='reporting2'
-zone='lab.corp'
-
-config_name='main'
-view_name='default'
-
-
-loginurl = mainurl+"login?username="+account+"&password="+account_password
-getsysinfourl = mainurl+"getSystemInfo?"
-logouturl = mainurl+"logout?"
+main_url = "http://"+bam_url+"/Services/REST/v1/"
+getsysinfourl = main_url+"getSystemInfo?"
+logout_url = main_url+"logout?"
 
 # getEntityByName method
 e_parentId=0
@@ -69,13 +58,15 @@ def send_js(path):
 
 @app.route('/logout')
 def logout():
-    response=requests.get(logouturl,headers=header)
+    response=requests.get(logout_url,headers=header)
     session['loggedin']=None
     return response.json()
 
 @app.route('/login')
 def login():
-    response = requests.get(loginurl)
+    login_url = main_url+"login?username="+bam_account+"&password="+account_password
+
+    response = requests.get(login_url)
     token = str(response.json())
     token = token.split()[2]+" "+token.split()[3]
     header={'Authorization':token,'Content-Type':'application/json'}
