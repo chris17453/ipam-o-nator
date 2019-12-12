@@ -9,9 +9,7 @@ verify_ssl = true
 uwsgi = "*"
 flask = "*"
 requests = "*"
-py-yaml = "*"
 pyyaml = "*"
-yaml = "*"
 
 [requires]
 python_version = "3.7"

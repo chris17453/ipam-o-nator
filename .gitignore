@@ -4,3 +4,6 @@ config.txt
 builds
 *.pyc
 
+creds.json
+push
+password

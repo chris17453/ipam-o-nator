@@ -2,9 +2,19 @@ FROM nginx
 
 ENV HOME=/opt/repo
 
+# enter
+WORKDIR ${HOME}
+
 # install python, uwsgi, and supervisord
-RUN apt-get update && apt-get install -y supervisor uwsgi python python-pip procps vim && \
-    /usr/bin/pip install uwsgi==2.0.17 flask==1.0.2
+RUN apt-get update && apt-get install -y supervisor uwsgi python3 python3-pip procps vim ack
+
+RUN /usr/bin/pip3 install pipenv
+# get requirements file
+
+
+COPY ./Pipfile  ${HOME}/Pipfile
+
+COPY ./Pipfile.lock  ${HOME}/Pipfile.lock
 
 # Source code file
 COPY ./src ${HOME}/src
@@ -12,6 +22,16 @@ COPY ./src ${HOME}/src
 # Copy the configuration file from the current directory and paste 
 # it inside the container to use it as Nginx's default config.
 COPY ./deployment/nginx.conf /etc/nginx/nginx.conf
+
+# Source code file
+COPY ./creds.json ${HOME}/creds.json
+
+
+
+RUN pipenv lock -r > requirements.txt
+
+# install requirements
+RUN pip3 install -r requirements.txt
 
 # setup NGINX config
 RUN mkdir -p /spool/nginx /run/pid && \
@@ -44,7 +64,5 @@ RUN chgrp -R 0 /var/log /var/cache /run/pid /spool/nginx /var/run /run /tmp /etc
     chown -R nginx:root ${HOME} && \
     chmod -R 777 ${HOME} /etc/passwd
 
-# enter
-WORKDIR ${HOME}
 ENTRYPOINT ["docker-entrypoint.sh"]
 CMD ["supervisord"]
