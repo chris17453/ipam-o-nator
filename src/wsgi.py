@@ -7,9 +7,15 @@ app = Flask(__name__, static_url_path='')
 
 
 # Account id stuff...
-bam_account =os.environ['BAM_ACCOUNT']
-bam_password = os.environ['BAM_PASSWORD']
-bam_url = os.environ['BAM_URL']
+bam_account = None
+bam_password= None
+bam_url     = None
+
+try:
+    bam_account  = os.environ['BAM_ACCOUNT']
+    bam_password = os.environ['BAM_PASSWORD']
+    bam_url      = os.environ['BAM_URL']
+except:
 
 main_url = "http://"+bam_url+"/Services/REST/v1/"
 getsysinfourl = main_url+"getSystemInfo?"

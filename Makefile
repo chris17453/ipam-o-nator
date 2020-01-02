@@ -8,7 +8,7 @@ image_version=latest
 # openshift token
 os_toklen=<xyz>
 os_server=https://openshift_server.com
-app_hostname=ipam-o-nator.wensite.com
+app_hostname=ipam-o-nator.website.com
 
 .DEFAULT: help
 .PHONY: all test clean profile
@@ -57,7 +57,11 @@ deploy-update-openshift:
 	@oc import-image $(image_name):$(image_version) --from=$(hubusername)/$(image_name) --confirm
 
 debug:
+#	@. src/load_env.sh
 	@python ./src/wsgi.py
+
+test:
+	@python -m src.test 
 
 set_vars:
 	@src/setup_env.sh

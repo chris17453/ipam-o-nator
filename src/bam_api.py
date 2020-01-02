@@ -2,6 +2,7 @@ import os
 import urllib
 import requests
 import logging
+import json
 
 
 class bam_api:
@@ -20,7 +21,7 @@ class bam_api:
 
         if creds:
             bam_creds=self.load_creds(creds)
-
+            
         if bam_creds:
             self.account  = bam_creds['bluecat']['account']
             self.password = bam_creds['bluecat']['password']
@@ -55,7 +56,7 @@ class bam_api:
         if all(param is not None for param in [self.hostname, self.account, self.password]):
             self.login()
             self.config = self.getConfigs()
-            print(self.config)
+            #print(self.config)
         else:
             self.config = None
 
@@ -65,7 +66,8 @@ class bam_api:
             with open(cred_file) as json_file:
                 data = json.load(json_file)
             return data
-        except:
+        except Exception as ex:
+            print(ex)
             return None
 
 
@@ -88,7 +90,7 @@ class bam_api:
                 self.history.append(response)
                 # Handle non-200 responses
                 if response.status_code != 200:
-                    raise BluecatError(response)
+                    raise Exception (response)
                 try:
                     data = response.json()
                     self.logger.debug('Response Body: {}'.format(json.dumps(data, indent=2, sort_keys=True)))
@@ -145,6 +147,10 @@ class bam_api:
         return method, params, data
 
     @rest_call('get')
+    def get_networks(self, parent_id, start=0, count=1000):
+        return self.get_entities(parent_id, 'IP4Network', start, count)
+
+    @rest_call('get')
     def get_entities(self, parent_id, obj_type, start=0, count=1000):
         method = 'getEntities'
         params = {
@@ -155,9 +161,6 @@ class bam_api:
         }
         data = None
         return method, params, data
-
-    def get_networks(self, parent_id, start=0, count=1000):
-        return self.get_entities(parent_id, 'IP4Network', start, count)
 
     @rest_call('get')
     def get_entity_by_id(self, entityId):
@@ -222,9 +225,57 @@ class bam_api:
         return method, params, data
 
 
+    @rest_call('get')
+    def get_entity_by_cidr(self, parent_id, cidr, objType):
+        """config.id only works for top-level blocks, parent_id must literally be the parent obect's id"""
+        method = 'getEntityByCIDR'
+        params = {
+            'parentId': parent_id,
+            'cidr': cidr,
+            'type': objType
+        }
+        data = None
+        return method, params, data
+
+    def get_network_by_cidr(self, parent_id, cidr):
+        return self.get_entity_by_cidr(parent_id, cidr, 'IP4Network')
+
+    def get_block_by_cidr(self, parent_id, cidr):
+        return self.get_entity_by_cidr(parent_id, cidr, 'IP4Block')
+
+    @rest_call('get')
+    def get_ip_ranged_by_ip(self, parentId, ipAddr, objType):
+        method = 'getIPRangedByIP'
+        params = {
+            'containerId': parentId,
+            'type': objType,
+            'address': ipAddr.split('/')[0]
+        }
+        data = None
+        return method, params, data
+
+    def get_network(self, netAddr):
+        return self.get_ip_ranged_by_ip(self.config['id'], netAddr, 'IP4Network')
+
+    def get_network_by_ip(self, netAddr):
+        return self.get_ip_ranged_by_ip(self.config['id'], netAddr, 'IP4Network')
+
+    def get_block_by_ip(self, netAddr):
+        return self.get_ip_ranged_by_ip(self.config['id'], netAddr, 'IP4Block')
+
+    def get_dhcp_scope_by_ip(self, netAddr):
+        return self.get_ip_ranged_by_ip(self.config['id'], netAddr, 'DHCP4Range')
+
+
+
     def getConfig(self):
         return self.get_entity_by_name(0, '', 'Configuration')
 
     def getConfigs(self):
-        return self.get_entities(0,"Configuration")
+        config=self.get_entities(0,"Configuration")
+        print (config)
+        res=self.get_entity_by_id(1)
+        print(res)
+        return config
+        #return self.get_entities(0,"Configuration")
 
